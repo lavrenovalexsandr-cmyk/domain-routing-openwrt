@@ -4,22 +4,22 @@ START=99
 
 start () {
     {% if ansible_distribution_major_version >= "22" and country == "russia-inside" %}
-    DOMAINS=https://raw.githubusercontent.com/itdoginfo/allow-domains/main/Russia/inside-dnsmasq-nfset.lst
+    DOMAINS=https://raw.githubusercontent.com/lavrenovalexsandr-cmyk/allow-domains/my_branch/Russia/inside-dnsmasq-nfset.lst
     {% endif %}
     {% if ansible_distribution_major_version >= "22" and country == "russia-outside" %}
-    DOMAINS=https://raw.githubusercontent.com/itdoginfo/allow-domains/main/Russia/outside-dnsmasq-nfset.lst
+    DOMAINS=https://raw.githubusercontent.com/lavrenovalexsandr-cmyk/allow-domains/my_branch/Russia/outside-dnsmasq-nfset.lst
     {% endif %}
     {% if ansible_distribution_major_version >= "22" and country == "ukraine" %}
-    DOMAINS=https://raw.githubusercontent.com/itdoginfo/allow-domains/main/Ukraine/inside-dnsmasq-nfset.lst
+    DOMAINS=https://raw.githubusercontent.com/lavrenovalexsandr-cmyk/allow-domains/my_branch/Ukraine/inside-dnsmasq-nfset.lst
     {% endif %}
     {% if ansible_distribution_major_version < "22" and country == "russia-inside" %}
-    DOMAINS=https://raw.githubusercontent.com/itdoginfo/allow-domains/main/Russia/inside-dnsmasq-ipset.lst
+    DOMAINS=https://raw.githubusercontent.com/lavrenovalexsandr-cmyk/allow-domains/my_branch/Russia/inside-dnsmasq-ipset.lst
     {% endif %}
     {% if ansible_distribution_major_version < "22" and country == "russia-outside" %}
-    DOMAINS=https://raw.githubusercontent.com/itdoginfo/allow-domains/main/Russia/outside-dnsmasq-ipset.lst
+    DOMAINS=https://raw.githubusercontent.com/lavrenovalexsandr-cmyk/allow-domains/my_branch/Russia/outside-dnsmasq-ipset.lst
     {% endif %}
     {% if ansible_distribution_major_version < "22" and country == "ukraine" %}
-    DOMAINS=https://raw.githubusercontent.com/itdoginfo/allow-domains/main/Ukraine/inside-dnsmasq-ipset.lst
+    DOMAINS=https://raw.githubusercontent.com/lavrenovalexsandr-cmyk/allow-domains/my_branch/Ukraine/inside-dnsmasq-ipset.lst
     {% endif %}
     count=0
     while true; do
