@@ -3,7 +3,7 @@
 # Dnsmasq version check
 
   - name: Get dnsmasq version
-    shell: apk list-installed | grep dnsmasq-full | awk '{print $3}'
+    shell: opkg list-installed | grep dnsmasq-full | awk '{print $3}'
     register: dnsmasqfull_version
 
   - name: Check confdir option
@@ -22,7 +22,7 @@
 # Packages installation
 
   - name: install wg
-    apk:
+    opkg:
       name: "{{ item }}"
       state: present
     loop:
@@ -31,7 +31,7 @@
     when: tunnel == "wg"
 
   - name: install openvpn
-    apk:
+    opkg:
       name: "{{ item }}"
       state: present
     loop:
@@ -39,7 +39,7 @@
     when: tunnel == "openvpn"
 
   - name: install singbox
-    apk:
+    opkg:
       name: "{{ item }}"
       state: present
     loop:
@@ -47,14 +47,14 @@
     when: tunnel == "singbox" and ansible_distribution_major_version >= "23"
 
   - name: install curl
-    apk:
+    opkg:
       name: "{{ item }}"
       state: present
     loop:
         - curl
 
   - name: install nano
-    apk:
+    opkg:
       name: "{{ item }}"
       state: present
     loop:
@@ -62,13 +62,13 @@
     when: nano
 
   - name: install ipset
-    apk:
+    opkg:
       name: ipset
       state: present
     when: ansible_distribution_major_version < "22"
 
   - name: install dnsmasq-full (23)
-    shell: apk update && cd /tmp/ && apk download dnsmasq-full && apk remove dnsmasq && apk install dnsmasq-full --cache /tmp/ && [ -f /etc/config/dhcp-apk ] && cp etc/config/dhcp /etc/config/dhcp-old && mv /etc/config/dhcp-apk /etc/config/dhcp
+    shell: opkg update && cd /tmp/ && opkg download dnsmasq-full && opkg remove dnsmasq && opkg install dnsmasq-full --cache /tmp/ && [ -f /etc/config/dhcp-opkg ] && cp etc/config/dhcp /etc/config/dhcp-old && mv /etc/config/dhcp-opkg /etc/config/dhcp
     when: ansible_distribution_major_version >= "23" and list_domains and not dnsmasqfull_version.stdout
     ignore_errors: true
 
@@ -613,7 +613,7 @@
 # Configure DNS resolver
 
   - name: install dnscrypt-proxy2
-    apk:
+    opkg:
       name: dnscrypt-proxy2
       state: present
     when: dns_encrypt == "dnscrypt"
@@ -647,7 +647,7 @@
     when: dns_encrypt == "dnscrypt"
 
   - name: install stubby
-    apk:
+    opkg:
       name: stubby
       state: present
     when: dns_encrypt == "stubby"
