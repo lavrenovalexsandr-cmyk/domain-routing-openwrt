@@ -4,12 +4,12 @@
 
 # Скрипт для установки
 ```
-sh <(wget -O - https://raw.githubusercontent.com/lavrenovalexsandr-cmyk/domain-routing-openwrt/my_branch/getdomains-install.sh)
+sh <(wget -O - https://raw.githubusercontent.com/lavrenovalexsandr-cmyk/domain-routing-openwrt/openwrt_25.12.5/getdomains-install.sh)
 ```
 
 # Скрипт для удаления
 ```
-sh <(wget -O - https://raw.githubusercontent.com/lavrenovalexsandr-cmyk/domain-routing-openwrt/refs/heads/my_branch/getdomains-uninstall.sh)
+sh <(wget -O - https://raw.githubusercontent.com/lavrenovalexsandr-cmyk/domain-routing-openwrt/refs/heads/openwrt_25.12.5/getdomains-uninstall.sh)
 ```
 ## Скрипт для проверки конфигурации
 Написан для OpenWrt 23.05 и 22.03. На 21.02 работает только половина проверок.
@@ -18,25 +18,25 @@ sh <(wget -O - https://raw.githubusercontent.com/lavrenovalexsandr-cmyk/domain-r
 
 ### Запуск
 ```
-wget -O - https://raw.githubusercontent.com/ilavrenovalexsandr-cmyk/domain-routing-openwrt/my_branch/getdomains-check.sh | sh
+wget -O - https://raw.githubusercontent.com/ilavrenovalexsandr-cmyk/domain-routing-openwrt/openwrt_25.12.5/getdomains-check.sh | sh
 ```
 
 По-умолчанию запускается на русском языке. Если нужно запустить на английском, то после `sh` нужно добавить `-s --lang en`. Аналогично для проверок на подмену DNS и создания дампа.
 
 ```
-wget -O - https://raw.githubusercontent.com/lavrenovalexsandr-cmyk/domain-routing-openwrt/my_branch/getdomains-check.sh | sh -s --lang en
+wget -O - https://raw.githubusercontent.com/lavrenovalexsandr-cmyk/domain-routing-openwrt/openwrt_25.12.5/getdomains-check.sh | sh -s --lang en
 ```
 
 ### Запустить с проверкой на подмену DNS
 ```
-wget -O - https://raw.githubusercontent.com/lavrenovalexsandr-cmyk/domain-routing-openwrt/my_branch/getdomains-check.sh | sh -s dns
+wget -O - https://raw.githubusercontent.com/lavrenovalexsandr-cmyk/domain-routing-openwrt/openwrt_25.12.5/getdomains-check.sh | sh -s dns
 ```
 
 ### Запустить с созданием dump
 Все чувствительные переменные затираются.
 
 ```
-wget -O - https://raw.githubusercontent.com/lavrenovalexsandr-cmyk/domain-routing-openwrt/my_branch/getdomains-check.sh | sh -s dump
+wget -O - https://raw.githubusercontent.com/lavrenovalexsandr-cmyk/domain-routing-openwrt/openwrt_25.12.5/getdomains-check.sh | sh -s dump
 ```
 
 Поиск ошибок вручную: https://habr.com/ru/post/702388/
