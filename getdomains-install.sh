@@ -922,88 +922,88 @@ add_internal_wg() {
 }
 
 # AWG installer intentionally remains unchanged for separate adaptation.
+
 install_awg_packages() {
-    PKGARCH=$(opkg print-architecture | awk 'BEGIN {max=0} {if ($3 > max) {max = $3; arch = $2}} END {print arch}')
+    VERSION="$(ubus call system board | jsonfilter -e '@.release.version')"
+    TARGET="$(ubus call system board | jsonfilter -e '@.release.target' | cut -d '/' -f 1)"
+    SUBTARGET="$(ubus call system board | jsonfilter -e '@.release.target' | cut -d '/' -f 2)"
 
-    TARGET=$(ubus call system board | jsonfilter -e '@.release.target' | cut -d '/' -f 1)
-    SUBTARGET=$(ubus call system board | jsonfilter -e '@.release.target' | cut -d '/' -f 2)
-    VERSION=$(ubus call system board | jsonfilter -e '@.release.version')
-    PKGPOSTFIX="_v${VERSION}_${PKGARCH}_${TARGET}_${SUBTARGET}.ipk"
-    BASE_URL="https://github.com/Slava-Shchipunov/awg-openwrt/releases/download/"
-
+    RELEASE_TAG="v${VERSION}"
+    API_URL="https://api.github.com/repos/lavrenovalexsandr-cmyk/awg-openwrt/releases/tags/${RELEASE_TAG}"
+    BASE_URL="https://github.com/lavrenovalexsandr-cmyk/awg-openwrt/releases/download/${RELEASE_TAG}"
     AWG_DIR="/tmp/amneziawg"
-    mkdir -p "$AWG_DIR"
 
-    if opkg list-installed | grep -q amneziawg-tools; then
-        echo "amneziawg-tools already installed"
-    else
-        AMNEZIAWG_TOOLS_FILENAME="amneziawg-tools${PKGPOSTFIX}"
-        DOWNLOAD_URL="${BASE_URL}v${VERSION}/${AMNEZIAWG_TOOLS_FILENAME}"
-        curl -L -o "$AWG_DIR/$AMNEZIAWG_TOOLS_FILENAME" "$DOWNLOAD_URL"
+    PACKAGES="amneziawg-tools kmod-amneziawg luci-proto-amneziawg luci-i18n-amneziawg-ru"
 
-        if [ $? -eq 0 ]; then
-            echo "amneziawg-tools file downloaded successfully"
-        else
-            echo "Error downloading amneziawg-tools. Please, install amneziawg-tools manually and run the script again"
-            exit 1
-        fi
-
-        opkg install "$AWG_DIR/$AMNEZIAWG_TOOLS_FILENAME"
-
-        if [ $? -eq 0 ]; then
-            echo "amneziawg-tools file downloaded successfully"
-        else
-            echo "Error installing amneziawg-tools. Please, install amneziawg-tools manually and run the script again"
-            exit 1
-        fi
+    if [ -z "$VERSION" ] || [ -z "$TARGET" ] || [ -z "$SUBTARGET" ]; then
+        echo "ERROR: Cannot detect OpenWrt version or target"
+        exit 1
     fi
 
-    if opkg list-installed | grep -q kmod-amneziawg; then
-        echo "kmod-amneziawg already installed"
-    else
-        KMOD_AMNEZIAWG_FILENAME="kmod-amneziawg${PKGPOSTFIX}"
-        DOWNLOAD_URL="${BASE_URL}v${VERSION}/${KMOD_AMNEZIAWG_FILENAME}"
-        curl -L -o "$AWG_DIR/$KMOD_AMNEZIAWG_FILENAME" "$DOWNLOAD_URL"
+    echo "OpenWrt: ${VERSION}"
+    echo "Target: ${TARGET}/${SUBTARGET}"
+    echo "AWG release: ${RELEASE_TAG}"
 
-        if [ $? -eq 0 ]; then
-            echo "kmod-amneziawg file downloaded successfully"
-        else
-            echo "Error downloading kmod-amneziawg. Please, install kmod-amneziawg manually and run the script again"
-            exit 1
-        fi
+    mkdir -p "$AWG_DIR" || exit 1
 
-        opkg install "$AWG_DIR/$KMOD_AMNEZIAWG_FILENAME"
-
-        if [ $? -eq 0 ]; then
-            echo "kmod-amneziawg file downloaded successfully"
-        else
-            echo "Error installing kmod-amneziawg. Please, install kmod-amneziawg manually and run the script again"
-            exit 1
-        fi
+    RELEASE_JSON="$(curl -fsSL "$API_URL")"
+    if [ $? -ne 0 ] || [ -z "$RELEASE_JSON" ]; then
+        echo "ERROR: Cannot retrieve AWG release from GitHub"
+        exit 1
     fi
 
-    if opkg list-installed | grep -q luci-app-amneziawg; then
-        echo "luci-app-amneziawg already installed"
+    ASSET_NAMES="$(printf '%s\n' "$RELEASE_JSON" |
+        grep -o '"name"[[:space:]]*:[[:space:]]*"[^"]*"' |
+        sed 's/^[[:space:]]*"name"[[:space:]]*:[[:space:]]*"//; s/"$//')"
+
+    NEED_INSTALL=0
+
+    for package in $PACKAGES; do
+        if apk info -e "$package" >/dev/null 2>&1; then
+            echo "$package already installed"
+            continue
+        fi
+
+        FILENAME="$(printf '%s\n' "$ASSET_NAMES" |
+            grep "^${package}_v${VERSION}_" |
+            grep "_${TARGET}_${SUBTARGET}\.apk$" |
+            head -n 1)"
+
+        if [ -z "$FILENAME" ]; then
+            echo "ERROR: Package not found in GitHub release: $package"
+            echo "Expected target: ${TARGET}/${SUBTARGET}"
+            exit 1
+        fi
+
+        echo "Downloading: $FILENAME"
+
+        if ! curl -fL --retry 2 \
+            -o "$AWG_DIR/$FILENAME" \
+            "$BASE_URL/$FILENAME"; then
+            echo "ERROR: Failed to download $FILENAME"
+            exit 1
+        fi
+
+        if [ ! -s "$AWG_DIR/$FILENAME" ]; then
+            echo "ERROR: Downloaded file is empty: $FILENAME"
+            exit 1
+        fi
+
+        NEED_INSTALL=1
+    done
+
+    if [ "$NEED_INSTALL" -eq 1 ]; then
+        echo "Installing AmneziaWG APK packages..."
+
+        if ! apk add --allow-untrusted "$AWG_DIR"/*.apk; then
+            echo "ERROR: APK installation failed"
+            echo "Downloaded files retained in $AWG_DIR"
+            exit 1
+        fi
+
+        echo "AmneziaWG packages installed successfully"
     else
-        LUCI_APP_AMNEZIAWG_FILENAME="luci-app-amneziawg${PKGPOSTFIX}"
-        DOWNLOAD_URL="${BASE_URL}v${VERSION}/${LUCI_APP_AMNEZIAWG_FILENAME}"
-        curl -L -o "$AWG_DIR/$LUCI_APP_AMNEZIAWG_FILENAME" "$DOWNLOAD_URL"
-
-        if [ $? -eq 0 ]; then
-            echo "luci-app-amneziawg file downloaded successfully"
-        else
-            echo "Error downloading luci-app-amneziawg. Please, install luci-app-amneziawg manually and run the script again"
-            exit 1
-        fi
-
-        opkg install "$AWG_DIR/$LUCI_APP_AMNEZIAWG_FILENAME"
-
-        if [ $? -eq 0 ]; then
-            echo "luci-app-amneziawg file downloaded successfully"
-        else
-            echo "Error installing luci-app-amneziawg. Please, install luci-app-amneziawg manually and run the script again"
-            exit 1
-        fi
+        echo "All AmneziaWG packages are already installed"
     fi
 
     rm -rf "$AWG_DIR"
